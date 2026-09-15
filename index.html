@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mini Tetris</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-content:center;text-align:center;background:#111;color:#fff;font:16px system-ui}canvas{border:2px solid #fff;background:#000}p{margin:.5rem}
+</style>
+<h1>Mini Tetris</h1>
+<p>점수: <b id="score">0</b></p>
+<canvas id="game" width="200" height="400"></canvas>
+<p>← → 이동 · ↑ 회전 · ↓ 내리기 · Space 즉시 내리기</p>
+<script>
+const C=document.querySelector('#game'),X=C.getContext('2d'),S=document.querySelector('#score'),W=10,H=20,Z=20;
+const T=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];
+let B,P,x,y,score,last=0;
+const fresh=()=>Array.from({length:H},()=>Array(W).fill(0));
+function newPiece(){P=T[Math.random()*T.length|0];x=(W-P[0].length)/2|0;y=0;if(hit(P,x,y)){alert(`게임 오버! 점수: ${score}`);B=fresh();score=0;S.textContent=0}}
+function hit(p,nx,ny){return p.some((r,j)=>r.some((v,i)=>v&&(ny+j>=H||nx+i<0||nx+i>=W||B[ny+j]?.[nx+i]))) }
+function land(){P.forEach((r,j)=>r.forEach((v,i)=>v&&(B[y+j][x+i]=1)));for(let j=H-1;j>=0;j--)if(B[j].every(Boolean)){B.splice(j,1);B.unshift(Array(W).fill(0));score+=100;S.textContent=score;j++}newPiece()}
+function down(){hit(P,x,y+1)?land():y++}
+function rotate(){const p=P[0].map((_,i)=>P.map(r=>r[i]).reverse());if(!hit(p,x,y))P=p}
+function draw(){X.clearRect(0,0,C.width,C.height);X.fillStyle='#39d98a';[[B,0,0],[P,x,y]].forEach(([p,ox,oy])=>p.forEach((r,j)=>r.forEach((v,i)=>v&&X.fillRect((ox+i)*Z,(oy+j)*Z,Z-1,Z-1))))}
+function loop(t){if(t-last>500){down();last=t}draw();requestAnimationFrame(loop)}
+addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key))e.preventDefault();if(e.key==='ArrowLeft'&&!hit(P,x-1,y))x--;if(e.key==='ArrowRight'&&!hit(P,x+1,y))x++;if(e.key==='ArrowDown')down();if(e.key==='ArrowUp')rotate();if(e.key===' '){while(!hit(P,x,y+1))y++;land()}draw()});
+B=fresh();score=0;newPiece();requestAnimationFrame(loop);
+</script>
+</html>
